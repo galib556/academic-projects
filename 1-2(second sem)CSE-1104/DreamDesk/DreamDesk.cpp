@@ -1,5 +1,5 @@
 // DreamDesk — Object-Oriented Desktop Item Manager
-// Course   : CSE-1104 — Object Oriented Programming Lab
+// Course   : CSE-1206 — Object Oriented Programming Lab
 // Semester : 2nd Semester (Year 1, Semester 2)
 // Student  : Farhan Shariar | Roll: 2307113 | KUET CSE
 //
@@ -374,7 +374,7 @@ void showBanner() {
 ╔═══════════════════════════════════════════╗
 ║          D R E A M D E S K               ║
 ║    Object-Oriented Desktop Item Manager  ║
-║    CSE-1104 · OOP Lab · KUET CSE         ║
+║    CSE-1206 · OOP Lab · KUET CSE         ║
 ╚═══════════════════════════════════════════╝
 )";
 }
