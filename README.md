@@ -13,7 +13,7 @@
 ---
 
 This repository contains all academic projects completed during my undergraduate studies in **Computer Science and Engineering** at **Khulna University of Engineering & Technology (KUET)**.  
-Projects are listed in chronological order — earliest semester first.
+Projects are listed in **chronological order** — earliest semester first.
 
 ---
 
@@ -21,6 +21,8 @@ Projects are listed in chronological order — earliest semester first.
 
 ```
 academic-projects/
+├── 1-1(first sem)CSE-1102/
+│   └── Maze-Runner-PacMan/     ← C Console Pac-Man Game (CSE-1102)
 ├── 1-2(second sem)CSE-1206/
 │   └── DreamDesk/              ← C++ OOP Desktop Manager (CSE-1206)
 ├── 2-1(third sem)CSE-2104/
@@ -34,8 +36,9 @@ academic-projects/
 
 | # | Semester | Course | Project | Tech Stack |
 |---|----------|--------|---------|------------|
-| 1 | 2nd (Year 1, Sem 2) | CSE-1206 | [DreamDesk – OOP Desktop Item Manager](./1-2(second%20sem)CSE-1206/DreamDesk) | C++17, OOP, STL |
-| 2 | 3rd (Year 2, Sem 1) | CSE-2104 | [ExamWatch – Smart Exam Surveillance](./2-1(third%20sem)CSE-2104/ExamWatch) | Arduino, Embedded C, Sensor Fusion |
+| 1 | **1st** (Year 1, Sem 1) | CSE-1102 | [🟡 The Maze-Runner: Pac-Man](./1-1(first%20sem)CSE-1102/Maze-Runner-PacMan) | C, File I/O, Dynamic Memory, Console |
+| 2 | 2nd (Year 1, Sem 2) | CSE-1206 | [DreamDesk – OOP Desktop Item Manager](./1-2(second%20sem)CSE-1206/DreamDesk) | C++17, OOP, STL |
+| 3 | 3rd (Year 2, Sem 1) | CSE-2104 | [ExamWatch – Smart Exam Surveillance](./2-1(third%20sem)CSE-2104/ExamWatch) | Arduino, Embedded C, Sensor Fusion |
 
 ---
 
