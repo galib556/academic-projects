@@ -232,7 +232,7 @@ ExamWatch was designed in response to limitations identified across the followin
 
 | Field | Detail |
 |-------|--------|
-| Course | CSE-2104 — Microprocessors and Embedded Systems Lab |
+| Course | CSE-2104 — Microprocessors and Microcontroller Lab |
 | Institution | Khulna University of Engineering & Technology (KUET) |
 | Department | Computer Science and Engineering |
 | Semester | 3rd Semester (Year 2, Semester 1) |
