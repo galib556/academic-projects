@@ -16,7 +16,7 @@
 
 ## Overview
 
-DreamDesk is a command-line application that simulates a desktop file management system — the kind you interact with every day in Windows or macOS — reimplemented from scratch in pure C++17 to demonstrate every core Object-Oriented Programming concept covered in CSE-1104.
+DreamDesk is a command-line application that simulates a desktop file management system — the kind you interact with every day in Windows or macOS — reimplemented from scratch in pure C++17 to demonstrate every core Object-Oriented Programming concept covered in CSE-1206.
 
 The program lets you create **files**, **folders**, and **shortcuts**, nest items inside folders, rename and delete them, and persist the entire desktop state to disk with save/load support.
 
@@ -126,7 +126,7 @@ DreamDesk.exe
 ╔═══════════════════════════════════════════╗
 ║          D R E A M D E S K               ║
 ║    Object-Oriented Desktop Item Manager  ║
-║    CSE-1104 · OOP Lab · KUET CSE         ║
+║    CSE-1206 · OOP Lab · KUET CSE         ║
 ╚═══════════════════════════════════════════╝
 
 ┌─ Menu ──────────────────────────────┐
@@ -178,7 +178,7 @@ Choice: 1
 
 | Field | Detail |
 |-------|--------|
-| Course | CSE-1104 — Object Oriented Programming Lab |
+| Course | CSE-1206 — Object Oriented Programming Lab |
 | Institution | Khulna University of Engineering & Technology (KUET) |
 | Department | Computer Science and Engineering |
 | Semester | 2nd Semester (Year 1, Semester 2) |
