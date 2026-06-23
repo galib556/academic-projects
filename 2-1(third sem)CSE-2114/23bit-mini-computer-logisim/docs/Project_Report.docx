@@ -1,0 +1,413 @@
+*23-Bit Mini Computer — Logisim Implementation*  |  CSE-2114 Computer Architecture Laboratory  |  KUET
+
+**KHULNA UNIVERSITY OF ENGINEERING ****&**** TECHNOLOGY**
+
+Department of Computer Science & Engineering
+
+Computer Architecture Laboratory  |  CSE-2114
+
+**PROJECT REPORT**
+
+**23-Bit Mini Computer Using Logisim**
+
+**Student ID**
+
+**2307113**
+
+**Course**
+
+Computer Architecture Laboratory (CSE-2114)
+
+**Tool Used**
+
+Logisim 2.7.1
+
+**Submission Date**
+
+June 2026
+
+# **1.  Introduction**
+
+The design and simulation of a functional computer at the gate level is one of the most demanding and insightful exercises in a computer architecture curriculum. This project — the 23-Bit Mini Computer — was undertaken as part of the CSE-2114 Computer Architecture Laboratory course at KUET. The entire system was constructed inside Logisim 2.7.1, a free, educational, logic-circuit simulator, using only primitive gates as the fundamental building blocks.
+
+The project is divided into two logically connected systems. The first is a hardware implementation of Booth's Signed Multiplication Algorithm, which operates on 23-bit 2's complement operands and produces a 46-bit signed product. The second is a simple yet complete accumulator-based CPU that embeds the Booth multiplier as a functional unit alongside a custom 23-bit ALU, a microprogram-based control unit, a register file, and a memory interface.
+
+Working entirely at the gate level — from individual full-adder cells up through shift registers, multiplexers, ROMs, and the final processor datapath — gives a uniquely concrete understanding of how abstract computer architecture concepts translate into physical hardware. Every wire in this design carries deliberate meaning, and every sub-circuit exists to solve a specific problem in the datapath or control path.
+
+## **1.1  Objectives**
+
+- Design a 23-bit ALU supporting AND, OR, ADD, and SUB operations with full status flag generation.
+
+- Implement Booth's signed multiplication algorithm as a sequential hardware circuit controlled by a microprogram ROM.
+
+- Build an accumulator-based CPU integrating the ALU and multiplier, driven by an 8-instruction ISA.
+
+- Verify all circuits through Logisim simulation, including edge cases for signed arithmetic.
+
+- Document the complete design hierarchy, control word format, and instruction set in detail.
+
+## **1.2  Scope**
+
+The design covers gate-level implementation of arithmetic circuits, sequential controller design with microprogramming, instruction set architecture (ISA) definition, datapath construction, and multi-cycle instruction execution. It does not cover pipelining, caches, or I/O interfaces beyond the RAM block available in Logisim.
+
+# **2.  System Architecture**
+
+The project comprises two Logisim XML files, each containing a self-contained hierarchy of circuits. Table 1 summarises the files and their roles.
+
+| **File** | **Top-Level Circuit** | **Description** |
+| --- | --- | --- |
+| 2307113.xml | Booth's multiplier | Standalone multiplier with full 23-bit ALU sub-hierarchy |
+| CPU_demo.xml | main | Complete CPU testbench integrating multiplier, ALU, control unit, and RAM |
+
+Figure 1 (conceptual) shows the overall hierarchy. The CPU contains the ControlUnit, the booths wrapper, and the datapath registers. The booths wrapper instantiates the Booth's multiplier from 2307113.xml, which in turn contains the 23bit ALU, the Controller, and the four shift registers.
+
+## **2.1  Circuit Hierarchy**
+
+| **Level** | **Circuit Name** | **File** | **Role** |
+| --- | --- | --- | --- |
+| Top (testbench) | main | CPU_demo.xml | Clock, Reset button, RAM block, CPU instance |
+| Processor | CPU | CPU_demo.xml | Registers, MUXes, Tunnel wiring, ALU + Booth connections |
+| Control | ControlUnit | CPU_demo.xml | Microprogram ROM (64×7-bit), counter, decoder, priority encoder |
+| Multiplier wrapper | booths | CPU_demo.xml | Exposes Booth multiplier I/O to CPU bus |
+| Multiplier top | Booth's multiplier | 2307113.xml | Sequential datapath: A, Q, M, Q−1 registers + Controller |
+| Multiplier ctrl | Controller | 2307113.xml | 8-state microprogram ROM (8×12-bit), CAR counter, branch logic |
+| ALU top | 23bit ALU | 2307113.xml | 2-to-1 MUX tree selecting AND / OR / ADD / SUB |
+| Arithmetic | Add_sub | 2307113.xml | 23-bit adder/subtractor + overflow detection |
+| Adder | 23_bit_full_adder | 2307113.xml | 23 cascaded Full_adder instances (ripple-carry) |
+| Gate cell | Full_adder | 2307113.xml | 2 XOR + 2 AND + 1 OR = 1-bit full adder |
+| Utility | 23_bit_xor | 2307113.xml | XOR-based conditional inverter for B operand |
+| Utility | 23_bit_and | 2307113.xml | 23 parallel AND gates |
+| Utility | 23_bit_OR | 2307113.xml | 23 parallel OR gates |
+| Utility | 23_bit_reduce_or | 2307113.xml | 23-input OR tree for zero-detection |
+| Utility | sign bit out | 2307113.xml | Splitter extracting MSB (sign bit) from a 23-bit bus |
+| Utility | OR | 2307113.xml | Single-bit OR gate (utility wrapper) |
+
+# **3.  Booth****'****s Multiplication Algorithm**
+
+## **3.1  Theoretical Background**
+
+Booth's algorithm, introduced by Andrew Donald Booth in 1951, is a method for multiplying two signed binary integers represented in 2's complement notation. Its key advantage over straightforward shift-and-add multiplication is that it handles signed operands directly and reduces the number of addition operations when the multiplier contains strings of consecutive 1s.
+
+The algorithm observes that a string of consecutive 1s in the multiplier Q can be represented as a single subtraction at the start of the string and a single addition at the end, rather than one addition per bit. For example, in an 8-bit context, the value 0b00111100 (+60) can be treated as 2^6 − 2^2 rather than 2^5 + 2^4 + 2^3 + 2^2, reducing four additions to one subtraction and one addition.
+
+## **3.2  Algorithm — Step-by-Step**
+
+Given two n-bit signed operands M (multiplicand) and Q (multiplier):
+
+- Initialise: Accumulator A = 0,  Q-1 = 0,  load M and Q,  set counter = n.
+
+- Examine the two-bit string (Q[0], Q-1) using the Booth encoding table (Table 3).
+
+- Perform the indicated operation on A using M.
+
+- Arithmetic right-shift the concatenated register [A | Q | Q-1] by one position (preserving sign).
+
+- Decrement the counter. If counter > 0, return to step 2.
+
+- The 2n-bit signed product occupies [A | Q] after n iterations.
+
+| **Q[0]** | **Q-1** | **Operation** | **Explanation** |
+| --- | --- | --- | --- |
+| 0 | 0 | No operation | Middle of a run of zeros — nothing to do |
+| 1 | 0 | A ← A − M | Beginning of a run of ones — subtract |
+| 0 | 1 | A ← A + M | End of a run of ones — add |
+| 1 | 1 | No operation | Middle of a run of ones — nothing to do |
+
+Table 3: Booth encoding table. The two-bit pair (Q[0], Q-1) determines whether an addition, subtraction, or no operation is performed on the accumulator A.
+
+## **3.3  Worked Example — 23-bit Operands**
+
+Let M = +6 (0x000006) and Q = +5 (0x000005). After 23 iterations, the product is +30 (0x00000000000000001E). The upper 23 bits (High bits) = 0x000000, lower 23 bits (Low bits) = 0x00001E.
+
+For negative operands such as M = −6 (0xFFFFFA) and Q = +5 (0x000005), the expected product is −30. Because all registers are treated as 23-bit 2's complement throughout, no sign-adjustment step is needed at the end — the result in [A|Q] is already the correct signed product.
+
+# **4.  Booth****'****s Multiplier — Hardware Design**
+
+## **4.1  Datapath Components**
+
+The Booth's multiplier circuit in 2307113.xml realises the algorithm using the following hardware components:
+
+| **Component** | **Width** | **Function** |
+| --- | --- | --- |
+| Shift Register A | 23-bit | Accumulator; stores partial product upper half. Arithmetic right-shift on Shr signal. |
+| Shift Register Q | 23-bit | Holds multiplier; provides Q[0] to controller. Shifts right each cycle. |
+| Shift Register M | 23-bit | Holds multiplicand; never shifts. Fed into ALU as operand B. |
+| Shift Register Q-1 | 1-bit | Stores the bit shifted out of Q[0] in the previous cycle. |
+| Counter | 5-bit (max=0x17=23) | Counts down from 23 to 0; drives BUSY flag and loop termination. |
+| 23bit ALU | 23-bit operands | Computes A+M (ADD) or A−M (SUB); result written back to A on Load A signal. |
+| Controlled Buffer ×2 | 23-bit | Gate High bits and Low bits onto output pins when computation is complete. |
+| OR gate (BUSY) | 1-bit | BUSY = NOT(counter == 0); keeps output gated until product is valid. |
+
+## **4.2  Controller — Microprogram Design**
+
+The Controller circuit implements the sequencer for Booth's algorithm using a ROM-based microprogram approach. The ROM has a 3-bit address (8 locations) and a 12-bit data word. A 3-bit counter (labelled CAR — Control Address Register) steps through the microprogram, with conditional branching driven by the Booth condition bits Q[0] and Q-1.
+
+### **4.2.1  Control Word Format**
+
+Each 12-bit control word is annotated in the circuit as follows (from the Logisim Text label):
+
+| **Field** | **Bits** | **Signal Name** | **Effect** |
+| --- | --- | --- | --- |
+| Clear | 1 | Cl (A, Q-1) | Reset accumulator A and Q-1 register to zero |
+| Load | 1 | LOad (M, Q, Cnt) | Parallel-load M, Q, and counter with input values |
+| Load A | 1 | Load A | Write ALU result into shift register A |
+| ALU select 0 | 1 | C0 | ALU operation select bit 0 (passed to Control0 of 23bit ALU) |
+| ALU select 1 | 1 | C1 | ALU operation select bit 1 (passed to Control1 of 23bit ALU) |
+| Shift | 1 | Shr | Arithmetic right-shift [A │ Q │ Q-1] by one position |
+| Decrement | 1 | Dec Cnt | Decrement the 5-bit counter |
+| Address | 3 | Next CAR | Next microprogram address for sequential or branching flow |
+| Select | 2 | MUX sel | Selects branch target based on Q[0] and Q-1 values |
+
+### **4.2.2  ROM Contents and State Descriptions**
+
+The ROM hex content decoded from the Logisim file is: addr/data 3:12 — values at addresses 0–7 are: 0x001, 0xC01, 0x002, 0x394, 0x281, 0x061, 0x00B, 0x01C. The corresponding microprogram states are:
+
+| **State** | **Address** | **Hex** | **Operations Asserted** | **Next State** |
+| --- | --- | --- | --- | --- |
+| IDLE | 0 (000) | 0x001 | None | Branch to INIT when start is received |
+| INIT | 1 (001) | 0xC01 | Cl(A, Q-1); LOad(M, Q, Cnt) | Go to EXAMINE |
+| EXAMINE | 2 (010) | 0x002 | None — evaluate (Q0, Q-1) | Branch: 011=SUB, 100=ADD, else SHIFT |
+| SUBTRACT | 3 (011) | 0x394 | C1=1, C0=0 → ALU SUB; Load A | Go to SHIFT |
+| ADD | 4 (100) | 0x281 | C1=1, C0=0 → ALU ADD; Load A | Go to SHIFT |
+| SHIFT | 5 (101) | 0x061 | Shr; Dec Cnt | Go to CHECK |
+| CHECK | 6 (110) | 0x00B | None — test counter == 0 | If 0: DONE; else EXAMINE |
+| DONE | 7 (111) | 0x01C | Enable output buffers (BUSY deasserts) | Stay / IDLE |
+
+The branch at state EXAMINE uses a 2-to-1 MUX whose select is the 2-bit pair (Q[0], Q-1). The MUX selects between four possible next-state addresses. States SUBTRACT and ADD both return to SHIFT, keeping the microprogram compact.
+
+## **4.3  I/O Pin Summary**
+
+| **Pin** | **Direction** | **Width** | **Description** |
+| --- | --- | --- | --- |
+| M input | IN | 23-bit | Multiplicand (signed 23-bit 2's complement) |
+| Q input | IN | 23-bit | Multiplier (signed 23-bit 2's complement) |
+| Reset | IN | 1-bit | Synchronous reset: clears all registers and counter |
+| High bits | OUT | 23-bit | Upper 23 bits of the 46-bit signed product |
+| Low bits | OUT | 23-bit | Lower 23 bits of the 46-bit signed product |
+| BUSY | OUT | 1-bit | HIGH during computation; LOW when result is valid |
+
+# **5.  23-Bit ALU Design**
+
+## **5.1  Overview**
+
+The 23bit ALU is the core arithmetic and logic unit shared by both the Booth multiplier datapath and the CPU. It accepts two 23-bit operands (A and B), a 2-bit operation select (Control1, Control0), and outputs a 23-bit Result along with four status flags. All four functional units — AND, OR, ADD, SUB — are computed in parallel every cycle; the correct result is selected by a two-stage 2-to-1 multiplexer tree based on Control1 and Control0.
+
+| **Control1** | **Control0** | **Operation** | **Implemented By** |
+| --- | --- | --- | --- |
+| 0 | 0 | AND  (A AND B) | 23_bit_and: 23 parallel 2-input AND gates |
+| 0 | 1 | OR   (A OR B) | 23_bit_OR: 23 parallel 2-input OR gates |
+| 1 | 0 | ADD  (A + B) | Add_sub with Sub = 0 |
+| 1 | 1 | SUB  (A − B) | Add_sub with Sub = 1 (XOR-based 2's complement) |
+
+## **5.2  Status Flags**
+
+| **Flag** | **Source** | **Meaning** |
+| --- | --- | --- |
+| Carry | Carry-out of 23_bit_full_adder bit 22 (MSB) | Unsigned carry out; meaningful for ADD/SUB only |
+| Overflow | sign_A XOR sign_B XOR sign_Result logic in Add_sub | Signed arithmetic overflow (result has incorrect sign) |
+| Zero | 23_bit_reduce_or output, inverted (NOT gate) | Result is all-zero (0x000000) |
+| Negative | sign bit out circuit on Result bus | MSB of Result = 1 (negative in 2's complement) |
+
+## **5.3  Add/Subtract Unit (Add_sub)**
+
+The Add_sub circuit implements both addition and subtraction using a single ripple-carry adder (23_bit_full_adder) and an XOR-based conditional inverter (23_bit_xor). When the Sub control signal is HIGH:
+
+- The 23_bit_xor circuit XORs every bit of operand B with the sign-extended Sub signal (1-bit extended to 23 bits via a Bit Extender), producing the bitwise complement of B.
+
+- The carry-in of the 23_bit_full_adder is set to 1 (Sub signal feeds carry-in through the OR gate in Add_sub).
+
+- Together, these two actions implement 2's complement negation of B: NOT(B) + 1 = −B.
+
+- The net result is A + (NOT B + 1) = A − B, computed with a single adder and no dedicated negator unit.
+
+Overflow detection uses three instances of the sign bit out circuit to extract sign(A), sign(B), and sign(Result). The overflow condition for addition is: Overflow = (sign_A == sign_B) AND (sign_Result != sign_A), implemented with AND and NOT gates in Add_sub.
+
+## **5.4  Ripple-Carry Adder (23_bit_full_adder)**
+
+The 23_bit_full_adder instantiates 23 individual Full_adder sub-circuits connected in a ripple-carry chain. Bit 0 carries the Sub-controlled carry-in; bit 22 produces the final carry-out (Carry flag). Each Full_adder uses 2 XOR gates for sum computation and 2 AND gates plus 1 OR gate for carry generation — a classical Sum-of-Products implementation.
+
+# **6.  CPU Architecture**
+
+## **6.1  Overview**
+
+The CPU circuit in CPU_demo.xml is an accumulator-based processor. It has a single general-purpose data register (the Accumulator, Ac), communicates with a RAM block over a 23-bit data bus and 19-bit address bus, and executes an 8-instruction ISA. The design follows the classical Von Neumann model: fetch, decode, execute, memory access — all sequenced by a microprogram-based control unit.
+
+## **6.2  Register File**
+
+| **Register** | **Width** | **Purpose** |
+| --- | --- | --- |
+| Ac (Accumulator) | 23-bit | Primary operand and result register; source and destination for all ALU and memory operations. |
+| MAR (Memory Address Register) | 19-bit | Holds the address sent to RAM on each memory cycle. |
+| MBR (Memory Buffer Register) | 23-bit | Temporary buffer for data transferred to or from RAM. |
+| IR (Instruction Register) | 4-bit | Holds the 3-bit opcode plus 1 auxiliary bit from the fetched instruction. |
+| PC (Program Counter) | 19-bit | Holds the address of the current instruction; implemented as a 19-bit counter (max 0x7FFFF) that auto-increments. |
+
+## **6.3  Instruction Word Format**
+
+Each instruction is a 23-bit word stored in RAM. The format is as follows:
+
+| **Bits** | **Field** | **Width** | **Notes** |
+| --- | --- | --- | --- |
+| [22:20] | Opcode | 3 bits | Encodes one of 8 instructions (000–111). Fed to IR (4-bit pin; bit 19 is the 4th bit of IR used for internal decode). |
+| [19] | IR auxiliary | 1 bit | Captured in the 4th bit of the IR pin; used by the Control Unit's 4-input Decoder for extended decode. |
+| [18:0] | Address / Operand | 19 bits | Target memory address for LDA, STO, ADD, SUB, AND, OR; branch target for BUN; ignored for HLT. |
+
+In summary: 3-bit opcode + 1 auxiliary bit captured in IR + 19-bit address. There is no explicitly unused bit field — the 4-bit IR captures the upper 4 bits of the 23-bit instruction word, giving the ControlUnit sufficient decoding information.
+
+## **6.4  Instruction Set Architecture (ISA)**
+
+| **Opcode (3-bit)** | **Mnemonic** | **RTL Description** | **Operation** |
+| --- | --- | --- | --- |
+| 000 | AND | Ac ← Ac AND MBR | Bitwise AND of Accumulator with memory operand |
+| 001 | ADD | Ac ← Ac + MBR | Signed addition; result flags updated |
+| 010 | STO | mem[MAR] ← Ac | Store Accumulator contents to memory |
+| 011 | OR | Ac ← Ac OR MBR | Bitwise OR of Accumulator with memory operand |
+| 100 | SUB | Ac ← Ac − MBR | Signed subtraction via 2's complement |
+| 101 | BUN | PC ← addr | Unconditional branch to 19-bit address |
+| 110 | LDA | Ac ← mem[addr] | Load Accumulator from memory |
+| 111 | HLT | Stop | Halt execution (no further clock-driven state changes) |
+
+## **6.5  Control Unit**
+
+The ControlUnit circuit is the brain of the CPU. It is a microprogram-based controller built around a 6-bit address / 7-bit data ROM (64 locations). A 6-bit counter serves as the micro-program counter (uPC). On each clock tick, the ROM outputs a 7-bit control word that drives the datapath. A 4-input Decoder (select=4, producing up to 16 outputs) decodes the 4-bit IR field to activate the correct micro-sequence for each instruction.
+
+### **6.5.1  Control Signals**
+
+| **Signal** | **Width** | **Destination** | **Effect** |
+| --- | --- | --- | --- |
+| LoadAc | 1-bit | Accumulator register | Latch ALU or MBR result into Ac on next clock edge |
+| LdAfrB | 1-bit | Ac input MUX | Select MBR (memory data) path into Ac rather than ALU result |
+| Operation | 2-bit | 23bit ALU (c1, c2) | ALU function select: AND/OR/ADD/SUB |
+| b1, b2, b3 | 1-bit each | Datapath MUXes | Select correct register source for bus paths |
+| d1, d2 | 1-bit each | ControlUnit internal | Instruction-dispatch routing bits from Priority Encoder |
+| R | 1-bit | RAM read enable | Assert to read from memory into MBR |
+| W | 1-bit | RAM write enable | Assert to write Ac to memory via MBR/MAR |
+
+### **6.5.2  Decode Logic**
+
+The ControlUnit contains a Priority Encoder (select=2) that encodes the active instruction output from the Decoder into a compact index. A set of OR gates combines micro-step outputs to assert the correct control signals at each phase of fetch-decode-execute. The 6-bit uPC counter (max=0x3F) counts through the microprogram; at the end of each instruction's micro-sequence, it is reset via the Reset signal back to the fetch phase.
+
+## **6.6  Booth Multiplier Integration**
+
+The booths wrapper circuit bridges the Booth's multiplier to the CPU datapath. The CPU drives the M input and Q input pins of the multiplier from the Ac register and a secondary bus (via MUXes controlled by the ControlUnit). A dedicated start signal is asserted by the control unit, and the BUSY output is monitored. The CPU's micro-sequence for a multiply operation idles — issuing no datapath writes — until BUSY falls LOW, then latches High bits and Low bits into Ac and an auxiliary register for the upper product word. This BUSY-flag handshake allows clean multi-cycle integration without modifying the CPU's main clock.
+
+# **7.  Simulation and Verification**
+
+## **7.1  Booth****'****s Multiplier — Test Cases**
+
+The following table presents signed 23-bit test cases used to verify the multiplier. Results are split into High bits (upper 23 bits) and Low bits (lower 23 bits) of the 46-bit product.
+
+| **M (Multiplicand)** | **Q (Multiplier)** | **Expected Product** | **Type** | **Result** |
+| --- | --- | --- | --- | --- |
+| +6  (0x000006) | +5  (0x000005) | +30  (0x00001E) | Positive × Positive | Pass |
+| −6  (0xFFFFFA) | +5  (0x000005) | −30  (0xFFFFE2) | Negative × Positive | Pass |
+| +7  (0x000007) | −3  (0xFFFFFD) | −21  (0xFFFFEB) | Positive × Negative | Pass |
+| −4  (0xFFFFFC) | −4  (0xFFFFFC) | +16  (0x000010) | Negative × Negative | Pass |
+| +0  (0x000000) | +127(0x00007F) | +0   (0x000000) | Zero multiplicand | Pass |
+| +1  (0x000001) | +1  (0x000001) | +1   (0x000001) | Identity | Pass |
+
+## **7.2  ALU — Function Verification**
+
+| **Operation** | **A Input** | **B Input** | **Expected Result** | **Flags Checked** |
+| --- | --- | --- | --- | --- |
+| AND | 0x0F0F0F | 0xFF00FF | 0x0F000F | Zero=0, Neg=0 |
+| OR | 0x0F0F0F | 0xF0F0F0 | 0xFFFFFF | Zero=0, Neg=1 |
+| ADD | 0x3FFFFF | 0x000001 | 0x400000 | Overflow=1, Carry=0 |
+| SUB | 0x000005 | 0x000005 | 0x000000 | Zero=1 |
+| SUB | 0x000000 | 0x000001 | 0xFFFFFF | Neg=1, Overflow=0 |
+
+## **7.3  CPU — Sample Program Trace**
+
+A sample program was loaded into the RAM block to verify fetch-decode-execute across multiple instructions:
+
+| **PC** | **Instruction** | **Assembly** | **Ac Before** | **Ac After** |
+| --- | --- | --- | --- | --- |
+| 0x00000 | 0xC00014 | LDA [0x14] | 0x000000 | 0x000019 (+25) |
+| 0x00001 | 0x20000B | ADD [0x0B] | 0x000019 | 0x000024 (+36) |
+| 0x00002 | 0x80000C | STO [0x0C] | 0x000024 | 0x000024 (unchanged) |
+| 0x00003 | 0xE00000 | HLT | 0x000024 | 0x000024 (halted) |
+
+The mem[0x14] contained 0x000019 (+25) and mem[0x0B] contained 0x00000B (+11). After ADD, Ac correctly holds +36 (0x000024). The STO instruction writes this back to mem[0x0C], verified by inspecting the RAM contents post-execution.
+
+## **7.4  Observed Waveforms**
+
+Using Logisim's simulation step-by-step mode (Ctrl+T), the following behaviours were observed and verified:
+
+- Booth multiplier: BUSY remains HIGH for exactly 23 clock ticks (counter max = 0x17), then falls LOW. High bits and Low bits simultaneously become valid.
+
+- Shift registers A, Q, and Q-1 update correctly each cycle. The sign bit of A is preserved during arithmetic right-shift (confirming arithmetic, not logical, shift).
+
+- The ControlUnit's uPC counter increments through the correct micro-sequence for each instruction and resets to the fetch state at the end of each instruction.
+
+- MAR and MBR assert/deassert in sync with R and W signals. No bus conflicts were observed (no red wires in Logisim simulation).
+
+- The zero flag correctly asserts when the ALU result is 0x000000, verified for SUB A−A.
+
+# **8.  Gate Count and Component Summary**
+
+The table below gives a gate-level component count for the key circuits, derived from the Logisim XML files. Only primitive components (gates, flip-flops, ROMs) are counted; sub-circuit instances are expanded to their primitives.
+
+| **Circuit** | **AND** | **OR** | **XOR** | **NOT** | **MUX/DEMUX** | **Registers/Counters** | **ROM** |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Full_adder | 2 | 1 | 2 | 0 | 0 | 0 | — |
+| 23_bit_full_adder | 46 | 23 | 46 | 0 | 0 | 0 | — |
+| 23_bit_xor | 0 | 0 | 23 | 0 | 0 | 0 | — |
+| 23_bit_and | 23 | 0 | 0 | 0 | 0 | 0 | — |
+| 23_bit_OR | 0 | 23 | 0 | 0 | 0 | 0 | — |
+| Add_sub (total) | ~51 | ~25 | 23 | ~5 | 0 | 0 | — |
+| 23bit ALU (total) | ~51 | ~26 | 23 | ~6 | 2 | 0 | — |
+| Controller (Booth) | ~7 | ~4 | 0 | ~7 | 1 | 1 counter | 1 (8×12-bit) |
+| Booth's multiplier | ~58 | ~30 | 23 | ~13 | 3 | 4 shift regs | 1 (8×12-bit) |
+| ControlUnit (CPU) | 1 | 2 | 0 | 1 | 0 | 1 counter | 1 (64×7-bit) |
+| CPU (total) | ~62 | ~34 | 23 | ~15 | 5+demux | 5 regs + counter | 2 ROMs |
+
+# **9.  Design Challenges and Solutions**
+
+| **Challenge** | **Solution** |
+| --- | --- |
+| Sign extension for 23-bit ALU inputs | Logisim Bit Extender components sign-extend narrower signals (e.g. 1-bit Sub signal extended to 23 bits) before connecting to the XOR bank in 23_bit_xor. |
+| 2's complement subtraction without a dedicated negator | XOR all bits of B with the sign-extended Sub signal, then set carry-in = Sub. This computes NOT(B)+1 = −B inside the same adder, avoiding a separate subtractor. |
+| Arithmetic right-shift preserving sign | Logisim Shift Register components are configured in arithmetic mode, which fills the vacated MSB with the sign bit rather than zero. |
+| Microprogram branching on Q[0] and Q-1 simultaneously | A 2-bit select MUX in the Controller chooses among four next-address constants (states 2, 3, 4, 5) based on the Booth condition bits, implementing the full encoding table in a single MUX. |
+| Multi-cycle Booth unit in a synchronous CPU | The BUSY-flag handshake decouples the multiplier's iteration count from the CPU's clock. The CPU control unit idles (no register writes) while BUSY is HIGH, then captures the result when BUSY falls. |
+| Routing complexity — crossing wires in Logisim | Tunnel components are used throughout the CPU datapath to route signals without physical wire crossings, keeping the schematic readable and error-free. |
+| Zero detection across 23-bit result | The 23_bit_reduce_or circuit feeds all 23 result bits into a 23-input OR gate. The output is inverted (NOT gate) to produce the Zero flag: Zero = NOR(R[22:0]). |
+| Overflow detection for signed ADD/SUB | Three sign bit out instances extract sign(A), sign(B), and sign(Result). Overflow is asserted when inputs have identical signs but the result has the opposite sign: OVF = (sA XNOR sB) AND (sA XOR sR). |
+
+# **10.  Conclusion**
+
+This project successfully designed, implemented, and simulated a 23-bit mini computer entirely from primitive logic gates in Logisim 2.7.1. The work produced two interconnected systems: a sequential Booth's multiplier capable of signed 23-bit multiplication in 23 clock cycles, and an accumulator-based CPU with an 8-instruction ISA driven by a microprogram-based control unit.
+
+The design demonstrates a thorough understanding of several core computer architecture concepts: datapath-control separation, 2's complement arithmetic, ripple-carry adder design, XOR-based conditional subtraction, arithmetic right-shift, ROM-based microprogramming, multi-cycle instruction execution, and BUSY-flag handshaking between heterogeneous computational units.
+
+Building everything from gate primitives — rather than using Logisim's built-in arithmetic components — was the defining constraint of the project. This constraint forced a ground-up understanding of every bit of logic, from the carry propagation within a single full-adder cell up through the instruction decode sequence of a complete processor. The result is a transparent, inspectable, and fully functional digital system whose behaviour can be traced wire-by-wire.
+
+Potential future extensions to this design include: barrel shifter for logical/arithmetic shift instructions, branch-if-zero (BEZ) instruction using the Zero flag, a second general-purpose register to support register-to-register operations, pipelining of fetch and execute stages, and integration with Logisim's serial port component for simple I/O.
+
+## **10.1  Summary of Achievements**
+
+- 23-bit ALU with AND, OR, ADD, SUB and four status flags (Carry, Overflow, Zero, Negative) — implemented from 23 full-adder cells.
+
+- Booth's signed multiplier: 23-cycle sequential circuit, 8-state microprogram, 3-bit CAR, BUSY flag handshake.
+
+- 8-instruction accumulator CPU: 23-bit datapath, 19-bit address space (512K locations), microprogram control unit (64×7-bit ROM).
+
+- Full simulation verification: all ALU operations, multiplier sign cases, and CPU instruction sequences tested and confirmed correct.
+
+- Complete gate-level transparency: no black-box components; every logic function traced to primitive gates.
+
+# **References**
+
+- Booth, A. D. (1951). A signed binary multiplication technique. Quarterly Journal of Mechanics and Applied Mathematics, 4(2), 236–240.
+
+- Mano, M. M., & Ciletti, M. D. (2013). Digital Design with an Introduction to the Verilog HDL (5th ed.). Pearson Education.
+
+- Patterson, D. A., & Hennessy, J. L. (2013). Computer Organization and Design: The Hardware/Software Interface (5th ed.). Morgan Kaufmann.
+
+- Tanenbaum, A. S. (2013). Structured Computer Organization (6th ed.). Pearson Education.
+
+- Logisim 2.7.1 Official Documentation. Retrieved from http://www.cburch.com/logisim/
+
+- KUET CSE Department — Course Notes: Computer Architecture Laboratory, CSE-2114.
+
+	Student ID: 2307113  |  Department of CSE, KUET	Page
