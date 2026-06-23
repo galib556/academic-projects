@@ -21,11 +21,13 @@ Academic projects from my CSE undergraduate at **Khulna University of Engineerin
 ```
 academic-projects/
 ├── 1-1(first sem)CSE-1102/
-│   └── Maze-Runner-PacMan/     ← Pac-Man console game in C
+│   └── Maze-Runner-PacMan/              ← Pac-Man console game in C
 ├── 1-2(second sem)CSE-1206/
-│   └── DreamDesk/              ← C++ OOP desktop item manager
-└── 2-1(third sem)CSE-2104/
-    └── ExamWatch/              ← Arduino exam surveillance system
+│   └── DreamDesk/                       ← C++ OOP desktop item manager
+├── 2-1(third sem)CSE-2104/
+│   └── ExamWatch/                       ← Arduino exam surveillance system
+└── 2-1(third sem)CSE-2114/
+    └── 23bit-mini-computer-logisim/     ← 23-bit mini computer in Logisim
 ```
 
 ---
@@ -37,6 +39,7 @@ academic-projects/
 | 1 | 1-1 | CSE-1102 | [The Maze-Runner: Pac-Man](./1-1(first%20sem)CSE-1102/Maze-Runner-PacMan) | C, File I/O, Dynamic Memory |
 | 2 | 1-2 | CSE-1206 | [DreamDesk](./1-2(second%20sem)CSE-1206/DreamDesk) | C++17, OOP, STL |
 | 3 | 2-1 | CSE-2104 | [ExamWatch](./2-1(third%20sem)CSE-2104/ExamWatch) | Arduino, Embedded C |
+| 4 | 2-1 | CSE-2114 | [23-Bit Mini Computer](./2-1(third%20sem)CSE-2114/23bit-mini-computer-logisim) | Logisim, Digital Logic, Microprogramming |
 
 ---
 
