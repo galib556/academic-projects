@@ -46,3 +46,4 @@ academic-projects/
 <div align="center">
 Farhan Shariar · KUET CSE · <a href="mailto:f.s.galib91@gmail.com">f.s.galib91@gmail.com</a>
 </div>
+- **[DSA Text Editor](./2-1(third%20sem)CSE-2106/DSA-Text-Editor)** — Console-based C++11 text editor built from scratch with Doubly Linked List, Stack, Queue, BST, Adjacency List Graph (BFS/DFS), 6 sorting algorithms, Shunting-Yard expression evaluator & Binary Search find-and-replace. *(CSE-2106 · 3rd Semester)*
