@@ -26,8 +26,10 @@ academic-projects/
 │   └── DreamDesk/                       ← C++ OOP desktop item manager
 ├── 2-1(third sem)CSE-2104/
 │   └── ExamWatch/                       ← Arduino exam surveillance system
-└── 2-1(third sem)CSE-2114/
-    └── 23bit-mini-computer-logisim/     ← 23-bit mini computer in Logisim
+├── 2-1(third sem)CSE-2114/
+│   └── 23bit-mini-computer-logisim/     ← 23-bit mini computer in Logisim
+└── 2-1(third sem)CSE-2106/
+    └── DSA-Text-Editor/                 ← Console text editor using DSA
 ```
 
 ---
@@ -40,10 +42,10 @@ academic-projects/
 | 2 | 1-2 | CSE-1206 | [DreamDesk](./1-2(second%20sem)CSE-1206/DreamDesk) | C++17, OOP, STL |
 | 3 | 2-1 | CSE-2104 | [ExamWatch](./2-1(third%20sem)CSE-2104/ExamWatch) | Arduino, Embedded C |
 | 4 | 2-1 | CSE-2114 | [23-Bit Mini Computer](./2-1(third%20sem)CSE-2114/23bit-mini-computer-logisim) | Logisim, Digital Logic, Microprogramming |
+| 5 | 2-1 | CSE-2106 | [DSA Text Editor](./2-1(third%20sem)CSE-2106/DSA-Text-Editor) | C++11, DSA, No-STL |
 
 ---
 
 <div align="center">
 Farhan Shariar · KUET CSE · <a href="mailto:f.s.galib91@gmail.com">f.s.galib91@gmail.com</a>
 </div>
-- **[DSA Text Editor](./2-1(third%20sem)CSE-2106/DSA-Text-Editor)** — Console-based C++11 text editor built from scratch with Doubly Linked List, Stack, Queue, BST, Adjacency List Graph (BFS/DFS), 6 sorting algorithms, Shunting-Yard expression evaluator & Binary Search find-and-replace. *(CSE-2106 · 3rd Semester)*
