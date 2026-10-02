@@ -110,4 +110,8 @@ mvn javafx:run
 ---
 
 ## Author
-University Java Laboratory Project - 2026.
+
+**Farhan Shariar**
+Department of Computer Science and Engineering, Khulna University of Engineering & Technology (KUET)
+
+**Course:** CSE-2200 — Java Laboratory Project (2-2, 4th Semester), 2026
