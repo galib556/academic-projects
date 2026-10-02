@@ -28,8 +28,10 @@ academic-projects/
 │   └── ExamWatch/                       ← Arduino exam surveillance system
 ├── 2-1(third sem)CSE-2114/
 │   └── 23bit-mini-computer-logisim/     ← 23-bit mini computer in Logisim
-└── 2-1(third sem)CSE-2106/
-    └── DSA-Text-Editor/                 ← Console text editor using DSA
+├── 2-1(third sem)CSE-2106/
+│   └── DSA-Text-Editor/                 ← Console text editor using DSA
+└── 2-2(fourth sem)CSE-2200/
+    └── dictionary-vocabulary-builder/   ← JavaFX vocabulary app with SQLite & REST API
 ```
 
 ---
@@ -43,6 +45,7 @@ academic-projects/
 | 3 | 2-1 | CSE-2104 | [ExamWatch](./2-1(third%20sem)CSE-2104/ExamWatch) | Arduino, Embedded C |
 | 4 | 2-1 | CSE-2114 | [23-Bit Mini Computer](./2-1(third%20sem)CSE-2114/23bit-mini-computer-logisim) | Logisim, Digital Logic, Microprogramming |
 | 5 | 2-1 | CSE-2106 | [DSA Text Editor](./2-1(third%20sem)CSE-2106/DSA-Text-Editor) | C++11, DSA, No-STL |
+| 6 | 2-2 | CSE-2200 | [Dictionary & Vocabulary Builder](./2-2(fourth%20sem)CSE-2200/dictionary-vocabulary-builder) | Java 21, JavaFX, SQLite, JSON API, Multithreading |
 
 ---
 
