@@ -114,4 +114,4 @@ mvn javafx:run
 **Farhan Shariar**  
 Department of Computer Science and Engineering, Khulna University of Engineering & Technology (KUET)
 
-**Course:** CSE-2200 — Java Laboratory Project (2-2, 4th Semester), 2026
+**Course:** CSE-2200 — Advanced Programming Laboratory Project (2-2, 4th Semester), 2026
